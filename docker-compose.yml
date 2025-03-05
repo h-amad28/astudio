@@ -1,0 +1,64 @@
+version: '3'
+services:
+ 
+  #Nginx Service
+  nginx:
+    image: tutum/nginx
+    container_name: nginx
+    platform: "linux/amd64"
+    ports:
+      - "80:80"
+      - "443:443"
+    # extra_hosts:
+    #   - "host.docker.internal:host-gateway"
+    volumes:
+      - ./docker/php/php7_4/htdocs.conf:/etc/nginx/sites-enabled/htdocs_7_4.conf
+      - .:/var/www/html/htdocs7_4
+    networks:
+        hamedLNMP:
+            aliases:
+                - htdocs_7.net
+
+  htdocs_7_4:
+    build: ./docker/php/php7_4
+    # build:
+    #   context: .
+      # dockerfile: ./php/Dockerfile
+    container_name: htdocs_7_4
+    # restart: unless-stopped
+    # tty: true
+    ports:
+      - "9700:9000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:      
+      - .:/var/www/html/htdocs7_4
+    depends_on:
+      - nginx
+      - mysql
+    networks:
+      - hamedLNMP
+
+  #MySQL Service
+  mysql:
+    image: mysql:5.7.32
+    container_name: mysql
+    platform: "linux/amd64"
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: test
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
+      # - MYSQL_ROOT_PASSWORD=''
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - ./MySql:/var/lib/mysql/
+    networks:
+      - hamedLNMP
+networks:
+  hamedLNMP:
+    external: true
+  default:
